@@ -59,3 +59,55 @@ train_data, valid_data = random_split(train_data, [n_train_examples, n_valid_exa
 
 valid_data = copy.deepcopy(valid_data)
 valid_data.dataset.transform = test_transforms
+
+
+# Part 19 - PyTorch training Course
+
+# Creating train, validation and test dataloaders
+
+BATCH_SIZE = 64
+
+train_loader = data.DataLoader(train_data,
+                               shuffle=True,
+                               batch_size=BATCH_SIZE)
+
+valid_loader = data.DataLoader(valid_data,
+                               batch_size=BATCH_SIZE)
+
+test_loader = data.DataLoader(test_data,
+                              batch_size=BATCH_SIZE)
+
+
+# LeNet Implementation
+
+class LeNet(nn.Module):
+    def __init__(self, output_dim):
+        super().__init__()
+
+        self.conv1 = nn.Conv2d(in_channels=3, out_channels=6, kernel_size=5)
+        self.conv2 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5)
+        self.fc1 = nn.Linear(in_features=16 * 5 * 5, out_features=120)
+        self.fc2 = nn.Linear(in_features=120, out_features=84)
+        self.fc3 = nn.Linear(in_features=84, out_features=output_dim)
+
+
+    def forward(self, x):
+        # Feature Extraction
+        x = self.conv1(x)
+        x = F.max_pool2d(x, kernel_size=2)
+        x = F.relu(x)
+        x = self.conv2(x)
+        x = F.max_pool2d(x, kernel_size=2)
+        x = F.relu(x)
+
+        x = x.view(-1, 16 * 5 * 5)
+
+        # Classification
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.fc2(x)
+        x = F.relu(x)
+        x = self.fc3(x)
+
+        return x
+
