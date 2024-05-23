@@ -138,3 +138,59 @@ def calculate_accuracy(pred, y):
     acc = correct.float() / y.shape[0]
     return acc
 
+
+# Part 21 - PyTorch Course training
+
+# helper function to perform training epochs
+
+def train(model, dataloader, optimizer, criterion, device):
+    epoch_loss = 0
+    epoch_acc = 0
+
+    model.train()
+
+    for features, labels in tqdm(dataloader, desc='Training Phase', leave=False):
+        # Sending features and labels to device
+        features = features.to(device)
+        labels = labels.to(device)
+
+        # Forward pass; making predictions an calculating loss
+        pred = model(features)
+        loss = criterion(pred, labels)
+
+
+        # Backpropagation
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        # Calculating accuracies
+        acc = calculate_accuracy(pred, labels)
+        epoch_loss += loss.item()
+        epoch_acc += acc.item()
+
+    return epoch_loss / len(dataloader), epoch_acc / len(dataloader)
+
+
+# Helper function to perform evaluation epoch
+
+def evaluate(model, dataloader, criterion, device):
+    epoch_loss = 0
+    epoch_acc = 0
+
+    model.eval()
+
+    with torch.no_grad():
+        for features, labels in tqdm(dataloader, desc='Evaluation Phase', leave=False):
+            features = features.to(device)
+            labels = labels.to(device)
+
+            pred = model(features)
+
+            loss = criterion(pred, labels)
+            acc = calculate_accuracy(pred, labels)
+
+            epoch_loss += loss.item()
+            epoch_acc += acc.item()
+
+    return epoch_loss / len(dataloader), epoch_acc / len(dataloader)
