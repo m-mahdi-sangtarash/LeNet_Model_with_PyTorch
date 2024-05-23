@@ -17,6 +17,8 @@ from sklearn.metrics import ConfusionMatrixDisplay
 from tqdm.notebook import tqdm, trange
 import matplotlib.pyplot as plt
 
+from torchinfo import summary
+
 SEED = 101
 
 random.seed(SEED)
@@ -110,4 +112,29 @@ class LeNet(nn.Module):
         x = self.fc3(x)
 
         return x
+
+
+# Part 20 - PyTorch Course Training videos
+
+OUTPUT_DIM = 10
+model = LeNet(OUTPUT_DIM)
+
+summary(model, input_size=(1, 3, 32, 32))
+
+optimizer = optim.SGD(model.parameters(), lr=0.001)
+criterion = nn.CrossEntropyLoss()
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+model = model.to(device)
+criterion = criterion.to(device)
+
+
+# helper function to calculate accuracy
+
+def calculate_accuracy(pred, y):
+    top_pred = pred.argmax(1, keepdim=True)
+    correct = top_pred.eq(y.view_as(top_pred)).sum()
+    acc = correct.float() / y.shape[0]
+    return acc
 
