@@ -12,3 +12,7 @@ Since the LeNet model is used for Gray Scale photos and the data set is CIFAR10 
 ## ● ConfusionMatrix Output
 
 ![Sample Image](Output/ConfusionMatrixPlot-Output.png)
+
+```
+{'airplane': 0, 'automobile': 1, 'bird': 2, 'cat': 3, 'deer': 4, 'dog': 5, 'frog': 6, 'horse': 7, 'ship': 8, 'truck': 9}
+```
