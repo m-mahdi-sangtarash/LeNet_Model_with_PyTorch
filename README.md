@@ -8,3 +8,7 @@ In this project, we train the model with CIFAR10 dataset.
 
 ### Note:
 Since the LeNet model is used for Gray Scale photos and the data set is CIFAR10 RGB, as a result, the accuracy of our model will be low after training.
+
+## ● ConfusionMatrix Output
+
+![Sample Image](Output/ConfusionMatrixPlot-Output.png)
