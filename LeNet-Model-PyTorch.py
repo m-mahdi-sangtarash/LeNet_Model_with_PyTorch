@@ -14,7 +14,7 @@ import torchvision.datasets as datasets
 
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import ConfusionMatrixDisplay
-from tqdm.notebook import tqdm, trange
+from tqdm import tqdm, trange
 import matplotlib.pyplot as plt
 
 from torchinfo import summary
@@ -27,12 +27,11 @@ torch.manual_seed(SEED)
 torch.cuda.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 
-
-train_transforms = transforms.Compose([transforms.ToTensor,
-                                      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+train_transforms = transforms.Compose([transforms.ToTensor(),
+                                       transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                                        ])
 
-test_transforms = transforms.Compose([transforms.ToTensor, transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+test_transforms = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                                       ])
 
 train_data = datasets.CIFAR10(
@@ -58,10 +57,8 @@ n_valid_examples = len(train_data) - n_train_examples
 
 train_data, valid_data = random_split(train_data, [n_train_examples, n_valid_examples])
 
-
 valid_data = copy.deepcopy(valid_data)
 valid_data.dataset.transform = test_transforms
-
 
 # Part 19 - PyTorch training Course
 
@@ -91,7 +88,6 @@ class LeNet(nn.Module):
         self.fc1 = nn.Linear(in_features=16 * 5 * 5, out_features=120)
         self.fc2 = nn.Linear(in_features=120, out_features=84)
         self.fc3 = nn.Linear(in_features=84, out_features=output_dim)
-
 
     def forward(self, x):
         # Feature Extraction
@@ -154,10 +150,9 @@ def train(model, dataloader, optimizer, criterion, device):
         features = features.to(device)
         labels = labels.to(device)
 
-        # Forward pass; making predictions an calculating loss
+        # Forward pass; making predictions and calculating loss
         pred = model(features)
         loss = criterion(pred, labels)
-
 
         # Backpropagation
         optimizer.zero_grad()
@@ -194,3 +189,40 @@ def evaluate(model, dataloader, criterion, device):
             epoch_acc += acc.item()
 
     return epoch_loss / len(dataloader), epoch_acc / len(dataloader)
+
+
+# Part 22 - PyTorch Course Videos Training
+
+# Training on train set
+
+EPOCHS = 5
+
+history = {
+    'train_loss': [],
+    'train_acc': [],
+    'val_loss': [],
+    'val_acc': []
+}
+
+for epoch in trange(EPOCHS, desc="Epoch Number"):
+    train_loss, train_acc = train(model, train_loader, optimizer, criterion, device)
+    history['train_loss'].append(train_loss)
+    history['train_acc'].append(train_acc)
+
+    valid_loss, valid_acc = evaluate(model, valid_loader, criterion, device)
+    history['val_loss'].append(valid_loss)
+    history['val_acc'].append(valid_acc)
+
+    print(f"Epoch: {epoch + 1:02}")
+    print(f"\tTrain Loss: {train_loss:>7.3f} | Training Accuracy: {train_acc * 100:>7.2f}%")
+    print(f"\tValidation Loss: {valid_loss:>7.3f} | Validation Accuracy: {valid_acc * 100:>7.2f}%")
+
+
+# Saving Model
+
+torch.save(model.state_dict(), 'cifar10.pt')
+
+# Evaluating on the Test set
+test_loss, test_acc = evaluate(model, test_loader, criterion, device)
+
+print(f"Test Loss: {test_loss:.3f} | Test Accuracy: {test_acc * 100:.2f}%")
