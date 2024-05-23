@@ -117,7 +117,7 @@ model = LeNet(OUTPUT_DIM)
 
 summary(model, input_size=(1, 3, 32, 32))
 
-optimizer = optim.SGD(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 criterion = nn.CrossEntropyLoss()
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -195,7 +195,7 @@ def evaluate(model, dataloader, criterion, device):
 
 # Training on train set
 
-EPOCHS = 5
+EPOCHS = 15
 
 history = {
     'train_loss': [],
@@ -217,7 +217,6 @@ for epoch in trange(EPOCHS, desc="Epoch Number"):
     print(f"\tTrain Loss: {train_loss:>7.3f} | Training Accuracy: {train_acc * 100:>7.2f}%")
     print(f"\tValidation Loss: {valid_loss:>7.3f} | Validation Accuracy: {valid_acc * 100:>7.2f}%")
 
-
 # Saving Model
 
 torch.save(model.state_dict(), 'cifar10.pt')
@@ -226,3 +225,42 @@ torch.save(model.state_dict(), 'cifar10.pt')
 test_loss, test_acc = evaluate(model, test_loader, criterion, device)
 
 print(f"Test Loss: {test_loss:.3f} | Test Accuracy: {test_acc * 100:.2f}%")
+
+
+# Part 23 - PyTorch Course Training
+
+# Plotting Confusion Matrix
+def get_preds(model, dataloader, device):
+    model.eval()
+
+    image_lst, labels_lst, probs_lst = [], [], []
+
+    with torch.no_grad():
+        for features, labels in dataloader:
+            features = features.to(device)
+
+            pred = model(features)
+
+            prob = F.softmax(pred, dim=-1)
+
+            image_lst.append(features.cpu())
+            labels_lst.append(labels.cpu())
+            probs_lst.append(prob.cpu())
+
+    images = torch.cat(image_lst, dim=0)
+    labels = torch.cat(labels_lst, dim=0)
+    probs = torch.cat(probs_lst, dim=0)
+
+    return images, labels, probs
+
+
+images, labels, probs = get_preds(model, test_loader, device)
+
+pred_labels = torch.argmax(probs, 1)
+
+fig = plt.figure(figsize=(8, 8))
+ax = fig.add_subplot(1, 1, 1)
+cm = confusion_matrix(labels, pred_labels)
+cm = ConfusionMatrixDisplay(cm, display_labels=range(10))
+cm.plot(values_format='d', cmap='BuGn', ax=ax)
+plt.show()
